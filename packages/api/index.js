@@ -6,6 +6,7 @@ const session = require('express-session');
 
 const app = express();
 const authRoutes = require('./routes/authRoutes');
+const taskRoutes = require('./routes/tasksRoutes');
 
 const sequelizeInstance = require('./config/db');
 
@@ -32,6 +33,7 @@ async function initializeDatabase() {
   initializeDatabase();
 
 app.use('/api/auth', authRoutes);
+app.use('/api/tasks', taskRoutes);
 
 app.get('/', (req, res) => {
   res.send('Task Manager API is running');
