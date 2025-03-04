@@ -20,15 +20,6 @@ const createTask = async (req, res) => {
   }
 };
 
-const getTasks = async (req, res) => {
-  try {
-    const tasks = await Task.findAll({ where: { userId: req.user.id } });
-    res.json(tasks);
-  } catch (error) {
-    res.status(500).json({ error: 'Error fetching tasks', details: error.message });
-  }
-};
-
 const updateTask = async (req, res) => {
   try {
     const { title, description, status } = req.body;
@@ -56,6 +47,42 @@ const updateTask = async (req, res) => {
   }
 };
 
+const getTasks = async (req, res) => {
+  try {
+    const tasks = await Task.findAll({ where: { userId: req.user.id } });
+
+    if (!tasks.length) {
+      return res.status(404).json({ error: "No tasks found" });
+    }
+
+    res.json(tasks);
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    res.status(500).json({ error: "Error fetching tasks" });
+  }
+};
+
+const getTaskById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (isNaN(id) || parseInt(id) <= 0) {
+      return res.status(400).json({ error: "Invalid task ID" });
+    }
+
+    const task = await Task.findOne({ where: { id, userId: req.user.id } });
+
+    if (!task) {
+      return res.status(404).json({ error: "Task not found or unauthorized" });
+    }
+
+    res.json(task);
+  } catch (error) {
+    console.error("Error fetching task by ID:", error);
+    res.status(500).json({ error: "Error fetching task" });
+  }
+};
+
 const deleteTask = async (req, res) => {
   try {
     const { id } = req.params;
@@ -72,4 +99,4 @@ const deleteTask = async (req, res) => {
   }
 };
 
-module.exports = { createTask, getTasks, updateTask, deleteTask };
+module.exports = { createTask, getTasks, getTaskById, updateTask, deleteTask };
