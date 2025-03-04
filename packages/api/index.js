@@ -5,7 +5,7 @@ const cors = require('cors');
 const session = require('express-session');
 
 const app = express();
-
+const authRoutes = require('./routes/authRoutes');
 const db = require('./config/db');
 
 async function testDBConnection() {
@@ -30,6 +30,8 @@ app.use(session({
   saveUninitialized: true,
   cookie: { secure: false }
 }));
+
+app.use('/api/auth', authRoutes);
 
 app.get('/', (req, res) => {
   res.send('Task Manager API is running');
