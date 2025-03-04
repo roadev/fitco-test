@@ -2,7 +2,7 @@ const User = require('../models/User');
 const { generateToken } = require('../middleware/auth');
 const bcrypt = require('bcrypt');
 
-exports.register = async (req, res) => {
+const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
     const existingUser = await User.findOne({ where: { email } });
@@ -18,18 +18,25 @@ exports.register = async (req, res) => {
   }
 };
 
-exports.login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ where: { email } });
-
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+const login = async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      const user = await User.findOne({ where: { email } });
+  
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+  
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+  
+      const token = generateToken(user);
+      res.json({ token });
+    } catch (error) {
+      res.status(500).json({ error: 'Error logging in' });
     }
+  };
 
-    const token = generateToken(user);
-    res.json({ token });
-  } catch (error) {
-    res.status(500).json({ message: 'Error logging in', error: error.message });
-  }
-};
+module.exports = { register, login };
