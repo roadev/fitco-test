@@ -3,6 +3,7 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const session = require('express-session');
+const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 const authRoutes = require('./routes/authRoutes');
@@ -19,6 +20,7 @@ app.use(session({
   saveUninitialized: true,
   cookie: { secure: false }
 }));
+app.use(errorHandler);
 
 async function initializeDatabase() {
     try {
