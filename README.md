@@ -42,6 +42,33 @@ This project is a **Task Manager API** built using **Node.js** with an **MVC arc
 | POST   | `/api/tasks/`   | Create a new task               |
 | GET    | `/api/tasks/`   | Get all tasks for the logged-in user |
 
+## Security Features
+
+### Input Validation
+- Ensures **name, email, and password** meet security requirements during registration.
+- Prevents **malformed login requests** with strict email and password validation.
+
+### Rate Limiting (Manual Implementation)
+- Blocks an IP **for 10 minutes** after **5 failed login attempts** within **15 minutes**.
+- Prevents **brute force attacks** without relying on external libraries.
+- Resets failed attempts **after a successful login**.
+
+### Centralized Error Handling
+- Captures and logs errors without exposing sensitive information.
+- Ensures **consistent API responses** for failures.
+- 
+### Secure HTTP Headers
+- Implements **helmet** to prevent **clickjacking, XSS, and data leaks**.
+- Hides **server information** to reduce attack surface.
+
+### Session Security
+- Enforces **httpOnly** cookies to prevent **JavaScript-based attacks**.
+- Uses **secure cookies in production**.
+
+### SQL Injection Prevention
+- Uses **Sequelize parameterized queries** to eliminate injection risks.
+
+
 
 ## Installation
 
