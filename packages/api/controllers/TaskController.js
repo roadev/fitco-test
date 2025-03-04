@@ -22,28 +22,33 @@ const createTask = async (req, res) => {
 
 const updateTask = async (req, res) => {
   try {
-    const { title, description, status } = req.body;
     const { id } = req.params;
+    const { title, description, status } = req.body;
+
+    if (isNaN(id) || parseInt(id) <= 0) {
+      return res.status(400).json({ error: "Invalid task ID" });
+    }
 
     const task = await Task.findOne({ where: { id, userId: req.user.id } });
 
     if (!task) {
-      return res.status(404).json({ error: 'Task not found' });
+      return res.status(404).json({ error: "Task not found or unauthorized" });
     }
 
     if (title && (typeof title !== 'string' || title.trim().length < 3)) {
-      return res.status(400).json({ error: 'Title must be at least 3 characters long' });
+      return res.status(400).json({ error: "Title must be at least 3 characters long" });
     }
 
     if (status && !['pending', 'in_progress', 'completed'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid status' });
+      return res.status(400).json({ error: "Invalid status" });
     }
 
     await task.update({ title, description, status });
 
-    res.json({ message: 'Task updated successfully', task });
+    res.json({ message: "Task updated successfully", task });
   } catch (error) {
-    res.status(500).json({ error: 'Error updating task', details: error.message });
+    console.error("Error updating task:", error);
+    res.status(500).json({ error: "Error updating task" });
   }
 };
 
