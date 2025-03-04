@@ -1,6 +1,8 @@
+const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const { generateToken } = require('../middleware/auth');
-const bcrypt = require('bcrypt');
+const { rateLimitStore } = require('../middleware/rateLimiter');
+
 
 const register = async (req, res) => {
   try {
@@ -32,11 +34,17 @@ const login = async (req, res) => {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
   
+      // Reset failed login attempts on successful authentication
+      const ip = req.ip || req.connection.remoteAddress;
+      if (rateLimitStore.has(ip)) {
+        rateLimitStore.delete(ip);
+      }
+  
       const token = generateToken(user);
       res.json({ token });
     } catch (error) {
       res.status(500).json({ error: 'Error logging in' });
     }
-  };
+};
 
 module.exports = { register, login };
