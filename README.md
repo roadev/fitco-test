@@ -32,3 +32,11 @@ This project is a **Task Manager API** built using **Node.js** with an **MVC arc
 
 - Docker & Docker Compose installed
 - Node.js installed (version 22.x or 23.x)
+
+### Steps
+
+This project uses the Node.js v22 runtime, LTS
+
+`nvm use`
+
+nvm is used to manage the node project's version
