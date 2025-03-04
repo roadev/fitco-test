@@ -6,6 +6,20 @@ const session = require('express-session');
 
 const app = express();
 
+const db = require('./config/db');
+
+async function testDBConnection() {
+  try {
+    const [result] = await db.query('SELECT 1');
+    console.log('MySQL Connection Successful:', result);
+  } catch (error) {
+    console.error('MySQL Connection Failed:', error.message);
+    process.exit(1);
+  }
+}
+
+testDBConnection();
+
 // Middleware
 app.use(express.json());
 app.use(helmet());
