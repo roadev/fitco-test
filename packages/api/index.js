@@ -6,11 +6,8 @@ const session = require('express-session');
 
 const app = express();
 const authRoutes = require('./routes/authRoutes');
-const db = require('./config/db');
 
 const sequelizeInstance = require('./config/db');
-
-const User = require('./models/User');
 
 // Middleware
 app.use(express.json());
@@ -25,7 +22,7 @@ app.use(session({
 
 async function initializeDatabase() {
     try {
-      await sequelize.sync({ alter: true });
+      await sequelizeInstance.sync({ alter: true });
       console.log('Database synchronized successfully.');
     } catch (error) {
       console.error('Database synchronization failed:', error.message);
