@@ -5,7 +5,6 @@ const loginRateLimiter = (req, res, next) => {
   const now = Date.now();
   const windowMs = 15 * 60 * 1000;
   const maxAttempts = 5;
-  // Block for 10 minutes after exceeding limit
   const blockDuration = 10 * 60 * 1000;
 
   if (!rateLimitStore.has(ip)) {
@@ -14,7 +13,6 @@ const loginRateLimiter = (req, res, next) => {
 
   const entry = rateLimitStore.get(ip);
 
-  // If IP is blocked, check if the block period has expired
   if (entry.blockedUntil && now < entry.blockedUntil) {
     return res.status(429).json({ error: "Too many failed login attempts. Try again later." });
   } else if (entry.blockedUntil && now >= entry.blockedUntil) {
@@ -38,4 +36,4 @@ const loginRateLimiter = (req, res, next) => {
   next();
 };
 
-module.exports = loginRateLimiter;
+module.exports = { loginRateLimiter, rateLimitStore };
