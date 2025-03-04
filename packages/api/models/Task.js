@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 const User = require('./User');
+const Project = require('./Project');
 
 const Task = sequelize.define('Task', {
   id: {
@@ -30,11 +31,23 @@ const Task = sequelize.define('Task', {
     },
     onDelete: 'CASCADE',
   },
+  projectId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: Project,
+      key: 'id',
+    },
+    onDelete: 'SET NULL',
+  },
 }, {
   timestamps: true,
 });
 
 User.hasMany(Task, { foreignKey: 'userId', onDelete: 'CASCADE' });
 Task.belongsTo(User, { foreignKey: 'userId' });
+
+Project.hasMany(Task, { foreignKey: 'projectId', onDelete: 'SET NULL' });
+Task.belongsTo(Project, { foreignKey: 'projectId' });
 
 module.exports = Task;

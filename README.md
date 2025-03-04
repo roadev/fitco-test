@@ -42,6 +42,42 @@ This project is a **Task Manager API** built using **Node.js** with an **MVC arc
 | POST   | `/api/tasks/`   | Create a new task               |
 | GET    | `/api/tasks/`   | Get all tasks for the logged-in user |
 
+
+## Projects Feature Overview
+
+## **Purpose**
+The **Projects** feature allows users to organize their tasks under structured projects. This enhances productivity by grouping related tasks and providing a clear overview of different work areas.
+
+## **Key Features**
+- **Project Creation**: Users can create projects with a name and an optional description.
+- **Task Association**: Tasks can be linked to specific projects for better organization.
+- **User Ownership**: Each project is tied to a user, ensuring data privacy.
+- **Project Management**:
+  - Retrieve all projects belonging to a user.
+  - Fetch details of a specific project.
+  - Update project details.
+  - Delete projects (tasks remain but lose project association).
+
+## **Expected Benefits**
+- **Improved Organization**: Users can categorize tasks based on different projects.
+- **Better Task Management**: Easier tracking of progress within each project.
+- **Scalability**: Enables future features like team collaboration, reporting, and deadlines.
+
+## **Endpoints Summary**
+| Method | Endpoint         | Description                               
+|--------|-----------------|-------------------------------------------
+| POST   | `/api/projects`  | Create a new project                     
+| GET    | `/api/projects`  | Retrieve all projects of the user       
+| GET    | `/api/projects/:id` | Fetch details of a specific project 
+| PUT    | `/api/projects/:id` | Update project details              
+| DELETE | `/api/projects/:id` | Remove a project                 
+
+## **Next Steps**
+- Implement a **dashboard view** to provide users with an overview of their projects and tasks.
+- Introduce **team collaboration features**, allowing multiple users to work on shared projects.
+- Enhance **task prioritization and deadline tracking** within projects.
+
+
 ## Security Features
 
 ### Input Validation
@@ -67,8 +103,6 @@ This project is a **Task Manager API** built using **Node.js** with an **MVC arc
 
 ### SQL Injection Prevention
 - Uses **Sequelize parameterized queries** to eliminate injection risks.
-
-
 
 ## Installation
 
