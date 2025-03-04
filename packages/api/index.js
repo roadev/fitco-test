@@ -8,17 +8,9 @@ const app = express();
 const authRoutes = require('./routes/authRoutes');
 const db = require('./config/db');
 
-async function testDBConnection() {
-  try {
-    const [result] = await db.query('SELECT 1');
-    console.log('MySQL Connection Successful:', result);
-  } catch (error) {
-    console.error('MySQL Connection Failed:', error.message);
-    process.exit(1);
-  }
-}
+const sequelizeInstance = require('./config/db');
 
-testDBConnection();
+const User = require('./models/User');
 
 // Middleware
 app.use(express.json());
@@ -30,6 +22,17 @@ app.use(session({
   saveUninitialized: true,
   cookie: { secure: false }
 }));
+
+async function initializeDatabase() {
+    try {
+      await sequelize.sync({ alter: true });
+      console.log('Database synchronized successfully.');
+    } catch (error) {
+      console.error('Database synchronization failed:', error.message);
+    }
+  }
+  
+  initializeDatabase();
 
 app.use('/api/auth', authRoutes);
 

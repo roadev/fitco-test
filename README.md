@@ -26,6 +26,23 @@ This project is a **Task Manager API** built using **Node.js** with an **MVC arc
 - **cors**
 - **helmet**: Enhances API security
 
+## API Endpoints
+
+### Authentication
+
+| Method | Endpoint           | Description       |
+|--------|-------------------|-------------------|
+| POST   | `/api/auth/register` | Register a new user |
+| POST   | `/api/auth/login`    | Login and get JWT |
+
+### Tasks
+
+| Method | Endpoint        | Description                      |
+|--------|----------------|----------------------------------|
+| POST   | `/api/tasks/`   | Create a new task               |
+| GET    | `/api/tasks/`   | Get all tasks for the logged-in user |
+
+
 ## Installation
 
 ### Prerequisites
