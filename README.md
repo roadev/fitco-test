@@ -77,6 +77,47 @@ The **Projects** feature allows users to organize their tasks under structured p
 - Introduce **team collaboration features**, allowing multiple users to work on shared projects.
 - Enhance **task prioritization and deadline tracking** within projects.
 
+## Team Collaboration Feature Overview
+
+## Purpose
+The Team Collaboration feature enables multiple users to work together on shared projects and tasks. It provides a way to organize users into teams, assign roles, and manage shared workspaces.
+
+## Key Models
+
+### Team
+- **id**: Primary key.
+- **name**: Required; the name of the team.
+- **description**: Optional; details about the team.
+- **ownerId**: References the user who created the team.
+
+### TeamMember
+- **id**: Primary key.
+- **role**: Enum; one of "admin", "member", or "viewer".
+- **userId**: References the user.
+- **teamId**: References the team.
+
+## Associations
+- A **Team** belongs to one **User** (owner).
+- A **Team** has many **TeamMembers**.
+- A **User** can belong to many **Teams** through **TeamMembers**.
+
+## Proposed Endpoints
+
+| Method | Endpoint                         | Description                                             
+|--------|----------------------------------|---------------------------------------------------------
+| POST   | `/api/teams`                     | Create a new team                                       
+| GET    | `/api/teams`                     | Retrieve all teams for the authenticated user           
+| GET    | `/api/teams/:id`                 | Get details of a specific team (including members)      
+| PUT    | `/api/teams/:id`                 | Update team details                                     
+| DELETE | `/api/teams/:id`                 | Delete a team                                           
+| POST   | `/api/teams/:id/members`         | Add a member to a team (or invite a new member)         
+| DELETE | `/api/teams/:id/members/:userId` | Remove a member from a team                             
+
+## Future Enhancements
+- Implement role-based permissions to control what actions each team member can perform.
+- Extend team functionality to include shared projects and tasks.
+- Add activity logs to track changes and collaborations within teams.
+
 
 ## Security Features
 
