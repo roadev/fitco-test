@@ -45,19 +45,31 @@ const createTask = async (req, res) => {
         .json({ error: "Title must be at least 3 characters long" });
     }
 
+    if (!projectId || isNaN(projectId) || parseInt(projectId) <= 0) {
+      return res
+        .status(400)
+        .json({ error: "A valid projectId is required for task creation" });
+    }
+
     if (priority && !["low", "medium", "high", "urgent"].includes(priority)) {
       return res.status(400).json({ error: "Invalid priority value" });
     }
 
-    let project = null;
-    if (projectId) {
-      project = await Project.findOne({
-        where: { id: projectId, userId: req.user.id },
+    const project = await Project.findByPk(projectId);
+    if (!project) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    if (project.ownerId !== req.user.id) {
+      const membership = await TeamMember.findOne({
+        where: { teamId: project.teamId, userId: req.user.id },
       });
-      if (!project) {
+      if (!membership) {
         return res
-          .status(404)
-          .json({ error: "Project not found or unauthorized" });
+          .status(403)
+          .json({
+            error: "You are not authorized to create tasks in this project",
+          });
       }
     }
 
@@ -66,7 +78,7 @@ const createTask = async (req, res) => {
       description,
       priority: priority || "medium",
       userId: req.user.id,
-      projectId: project ? project.id : null,
+      projectId,
     });
 
     res
@@ -195,6 +207,58 @@ const deleteTask = async (req, res) => {
   }
 };
 
+const assignTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { assignedTo } = req.body;
+
+    if (!assignedTo || isNaN(assignedTo) || parseInt(assignedTo) <= 0) {
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+
+    const task = await Task.findByPk(id, { include: [{ model: Project }] });
+
+    if (!task) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    const project = task.Project;
+
+    if (project.ownerId !== req.user.id) {
+      const membership = await TeamMember.findOne({
+        where: { teamId: project.teamId, userId: req.user.id },
+      });
+
+      if (!membership || membership.role !== "admin") {
+        return res.status(403).json({
+          error: "Only project owners or team admins can assign tasks",
+        });
+      }
+    }
+
+    const user = await User.findByPk(assignedTo);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const isMember = await TeamMember.findOne({
+      where: { teamId: project.teamId, userId: assignedTo },
+    });
+    if (project.teamId && !isMember) {
+      return res
+        .status(403)
+        .json({ error: "User is not a member of this team" });
+    }
+
+    await task.update({ assignedTo });
+
+    res.json({ message: "Task assigned successfully", task });
+  } catch (error) {
+    console.error("Error assigning task:", error);
+    res.status(500).json({ error: "Error assigning task" });
+  }
+};
+
 module.exports = {
   createTask,
   getTasks,
@@ -202,4 +266,5 @@ module.exports = {
   updateTask,
   deleteTask,
   getTasksByProject,
+  assignTask,
 };

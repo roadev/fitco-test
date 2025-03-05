@@ -1,7 +1,7 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
-const User = require('./User');
-const Project = require('./Project');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/db");
+const User = require("./User");
+const Project = require("./Project");
 
 const Task = sequelize.define('Task', {
   id: {
@@ -27,6 +27,15 @@ const Task = sequelize.define('Task', {
     defaultValue: 'medium',
     allowNull: false,
   },
+  assignedTo: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: User,
+      key: 'id',
+    },
+    onDelete: 'SET NULL',
+  },
   userId: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -38,21 +47,21 @@ const Task = sequelize.define('Task', {
   },
   projectId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
+    allowNull: false,
     references: {
       model: Project,
       key: 'id',
     },
-    onDelete: 'SET NULL',
+    onDelete: 'CASCADE',
   },
 }, {
   timestamps: true,
 });
 
-User.hasMany(Task, { foreignKey: 'userId', onDelete: 'CASCADE' });
-Task.belongsTo(User, { foreignKey: 'userId' });
+Project.hasMany(Task, { foreignKey: "projectId", onDelete: "CASCADE" });
+Task.belongsTo(Project, { foreignKey: "projectId" });
 
-Project.hasMany(Task, { foreignKey: 'projectId', onDelete: 'SET NULL' });
-Task.belongsTo(Project, { foreignKey: 'projectId' });
+User.hasMany(Task, { foreignKey: "assignedTo", onDelete: "SET NULL" });
+Task.belongsTo(User, { foreignKey: "assignedTo", as: "Assignee" });
 
 module.exports = Task;
