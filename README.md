@@ -115,3 +115,12 @@ nvm is used to manage the node project's version
 ### API will be available at
 
 `http://localhost:5000`
+
+## Future work and current stack
+
+This is a mono repo with a config and project structure I often use for full-stack projects in React / Node.
+The idea is to use `lerna` to bootstrap all the repo packages, in this case only the `/api` package is included since I did not work on frontend due to time concerns.
+
+LICENSE MIT
+
+by Juan Roa.
