@@ -1,16 +1,16 @@
 const axios = require('axios');
 const app = require('../../');
-import { auth, api } from '../../constants/api';
+const { auth, api } = require('../../constants/api');
 
 const { register, login } = auth;
-const { API_URL } = api;
+const { API_URL, PORT } = api;
 
 describe("Auth API Integration Tests", () => {
   let server;
   let testUser = { name: "John Doe", email: "john@example.com", password: "test1234" };
 
   beforeAll((done) => {
-    server = app.listen(4000, () => done());
+    server = app.listen(PORT, () => done());
   });
 
   afterAll((done) => {
