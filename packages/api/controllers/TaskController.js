@@ -1,6 +1,7 @@
 const Task = require("../models/Task");
 const Project = require("../models/Project");
 const TeamMember = require("../models/TeamMember");
+const User = require("../models/User");
 
 const getTasksByProject = async (req, res) => {
   try {
@@ -279,7 +280,9 @@ const unassignUserFromTask = async (req, res) => {
     const { userId } = req.body;
 
     if (!userId || isNaN(userId) || parseInt(userId) <= 0) {
-      return res.status(400).json({ error: "Provide a valid user ID to unassign" });
+      return res
+        .status(400)
+        .json({ error: "Provide a valid user ID to unassign" });
     }
 
     const task = await Task.findByPk(id, { include: [{ model: Project }] });
@@ -291,10 +294,15 @@ const unassignUserFromTask = async (req, res) => {
     const project = task.Project;
 
     if (project.ownerId !== req.user.id) {
-      const membership = await TeamMember.findOne({ where: { teamId: project.teamId, userId: req.user.id } });
+      const membership = await TeamMember.findOne({
+        where: { teamId: project.teamId, userId: req.user.id },
+      });
 
-      if (!membership || membership.role !== 'admin') {
-        return res.status(403).json({ error: "Only project owners or team admins can unassign users from tasks" });
+      if (!membership || membership.role !== "admin") {
+        return res.status(403).json({
+          error:
+            "Only project owners or team admins can unassign users from tasks",
+        });
       }
     }
 
@@ -303,17 +311,59 @@ const unassignUserFromTask = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const assignment = await TaskAssignment.findOne({ where: { taskId: id, userId } });
+    const assignment = await TaskAssignment.findOne({
+      where: { taskId: id, userId },
+    });
     if (!assignment) {
-      return res.status(400).json({ error: "User is not assigned to this task" });
+      return res
+        .status(400)
+        .json({ error: "User is not assigned to this task" });
     }
 
     await assignment.destroy();
 
-    res.json({ message: "User unassigned from task successfully", unassignedUser: userId });
+    res.json({
+      message: "User unassigned from task successfully",
+      unassignedUser: userId,
+    });
   } catch (error) {
     console.error("Error unassigning user from task:", error);
     res.status(500).json({ error: "Error unassigning user from task" });
+  }
+};
+
+const getTasksByUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId || isNaN(userId) || parseInt(userId) <= 0) {
+      return res.status(400).json({ error: "Provide a valid user ID" });
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const tasks = await Task.findAll({
+      include: [
+        {
+          model: User,
+          as: "Assignee",
+          where: { id: userId },
+          attributes: ["id", "name", "email"],
+        },
+        {
+          model: Project,
+          attributes: ["id", "name"],
+        },
+      ],
+    });
+
+    res.json({ tasks });
+  } catch (error) {
+    console.error("Error retrieving tasks by user:", error);
+    res.status(500).json({ error: "Error retrieving tasks by user" });
   }
 };
 
@@ -326,4 +376,5 @@ module.exports = {
   getTasksByProject,
   assignUserToTask,
   unassignUserFromTask,
+  getTasksByUser,
 };
