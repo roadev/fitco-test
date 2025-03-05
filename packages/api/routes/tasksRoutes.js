@@ -1,5 +1,5 @@
 const express = require('express');
-const { createTask, getTasks, getTaskById, updateTask, deleteTask, assignTask } = require('../controllers/TaskController');
+const { createTask, getTasks, getTaskById, updateTask, deleteTask, assignUserToTask } = require('../controllers/TaskController');
 const { verifyToken } = require('../middleware/auth');
 const authorizeTaskAccess = require('../middleware/taskAuthorization');
 
@@ -10,6 +10,6 @@ router.get('/', verifyToken, getTasks);
 router.get('/:id', verifyToken, authorizeTaskAccess(['admin', 'member', 'viewer']), getTaskById);
 router.put('/:id', verifyToken, authorizeTaskAccess(['admin', 'member']), updateTask);
 router.delete('/:id', verifyToken, authorizeTaskAccess(['admin']), deleteTask);
-router.put('/:id/assign', verifyToken, authorizeTaskAccess(['admin']), assignTask);
+router.put('/:id/assign', verifyToken, authorizeTaskAccess(['admin']), assignUserToTask);
 
 module.exports = router;
