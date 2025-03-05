@@ -28,7 +28,9 @@ const createTeam = async (req, res) => {
       .json({ message: "Team created successfully", team: newTeam });
   } catch (error) {
     console.error("Error creating team:", error);
-    res.status(500).json({ error: "Error creating team" });
+    res
+      .status(500)
+      .json({ error: "Error creating team", details: error.message });
   }
 };
 
@@ -53,6 +55,10 @@ const getTeamById = async (req, res) => {
   try {
     const { id } = req.params;
 
+    if (isNaN(id) || parseInt(id) <= 0) {
+      return res.status(400).json({ error: "Invalid team ID" });
+    }
+
     const team = await Team.findOne({
       where: { id },
       include: [
@@ -75,7 +81,9 @@ const getTeamById = async (req, res) => {
     res.json(team);
   } catch (error) {
     console.error("Error fetching team:", error);
-    res.status(500).json({ error: "Error fetching team" });
+    res
+      .status(500)
+      .json({ error: "Error fetching team", details: error.message });
   }
 };
 
