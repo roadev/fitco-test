@@ -39,7 +39,8 @@ const getTasksByProject = async (req, res) => {
 
 const createTask = async (req, res) => {
   try {
-    const { title, description, projectId, priority, assignedTo } = req.body;
+    const { title, description, projectId, priority, status, dueDate } =
+      req.body;
 
     if (!title || typeof title !== "string" || title.trim().length < 3) {
       return res
@@ -55,6 +56,10 @@ const createTask = async (req, res) => {
 
     if (priority && !["low", "medium", "high", "urgent"].includes(priority)) {
       return res.status(400).json({ error: "Invalid priority value" });
+    }
+
+    if (status && !["pending", "in_progress", "completed"].includes(status)) {
+      return res.status(400).json({ error: "Invalid status value" });
     }
 
     const project = await Project.findByPk(projectId);
@@ -77,19 +82,11 @@ const createTask = async (req, res) => {
       title,
       description,
       priority: priority || "medium",
+      status: status || "pending",
+      dueDate,
       userId: req.user.id,
       projectId,
     });
-
-    if (Array.isArray(assignedTo) && assignedTo.length > 0) {
-      const users = await User.findAll({ where: { id: assignedTo } });
-
-      if (users.length !== assignedTo.length) {
-        return res.status(400).json({ error: "One or more users are invalid" });
-      }
-
-      await newTask.addUsers(users);
-    }
 
     res
       .status(201)
@@ -103,51 +100,33 @@ const createTask = async (req, res) => {
 const updateTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, status, projectId, priority } = req.body;
+    const { title, description, priority, status, dueDate } = req.body;
 
-    if (isNaN(id) || parseInt(id) <= 0) {
-      return res.status(400).json({ error: "Invalid task ID" });
-    }
-
-    const task = await Task.findOne({ where: { id, userId: req.user.id } });
+    const task = await Task.findByPk(id, { include: [{ model: Project }] });
 
     if (!task) {
-      return res.status(404).json({ error: "Task not found or unauthorized" });
+      return res.status(404).json({ error: "Task not found" });
     }
 
-    if (title && (typeof title !== "string" || title.trim().length < 3)) {
-      return res
-        .status(400)
-        .json({ error: "Title must be at least 3 characters long" });
+    const project = task.Project;
+
+    if (project.ownerId !== req.user.id) {
+      const membership = await TeamMember.findOne({
+        where: { teamId: project.teamId, userId: req.user.id },
+      });
+
+      if (!membership || membership.role !== "admin") {
+        return res
+          .status(403)
+          .json({ error: "You are not authorized to update this task" });
+      }
     }
 
     if (status && !["pending", "in_progress", "completed"].includes(status)) {
-      return res.status(400).json({ error: "Invalid status" });
+      return res.status(400).json({ error: "Invalid status value" });
     }
 
-    if (priority && !["low", "medium", "high", "urgent"].includes(priority)) {
-      return res.status(400).json({ error: "Invalid priority value" });
-    }
-
-    if (projectId) {
-      const project = await Project.findOne({
-        where: { id: projectId, userId: req.user.id },
-      });
-      if (!project) {
-        return res
-          .status(404)
-          .json({ error: "Project not found or unauthorized" });
-      }
-      task.projectId = projectId;
-    }
-
-    await task.update({
-      title,
-      description,
-      status,
-      projectId: task.projectId,
-      priority,
-    });
+    await task.update({ title, description, priority, status, dueDate });
 
     res.json({ message: "Task updated successfully", task });
   } catch (error) {

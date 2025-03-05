@@ -27,6 +27,10 @@ const Task = sequelize.define('Task', {
     defaultValue: 'medium',
     allowNull: false,
   },
+  dueDate: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
   assignedTo: {
     type: DataTypes.INTEGER,
     allowNull: true,
