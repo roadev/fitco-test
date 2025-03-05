@@ -1,10 +1,9 @@
 const Project = require("../models/Project");
-const Task = require('../models/Task');
-
+const Task = require("../models/Task");
 
 const createProject = async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, teamId } = req.body;
 
     if (!name || typeof name !== "string" || name.trim().length < 3) {
       return res
@@ -12,10 +11,28 @@ const createProject = async (req, res) => {
         .json({ error: "Project name must be at least 3 characters long" });
     }
 
+    let team = null;
+    if (teamId) {
+      team = await Team.findByPk(teamId);
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+
+      const isMember = await TeamMember.findOne({
+        where: { teamId, userId: req.user.id },
+      });
+      if (!isMember) {
+        return res
+          .status(403)
+          .json({ error: "You are not a member of this team" });
+      }
+    }
+
     const newProject = await Project.create({
       name,
       description,
-      userId: req.user.id,
+      ownerId: team ? null : req.user.id, // If no team is provided, the user owns it
+      teamId: team ? team.id : null, // If a team is provided, assign it to the team
     });
 
     res
@@ -72,24 +89,21 @@ const updateProject = async (req, res) => {
     const { id } = req.params;
     const { name, description } = req.body;
 
-    if (isNaN(id) || parseInt(id) <= 0) {
-      return res.status(400).json({ error: "Invalid project ID" });
-    }
-
-    const project = await Project.findOne({
-      where: { id, userId: req.user.id },
-    });
+    const project = await Project.findByPk(id);
 
     if (!project) {
-      return res
-        .status(404)
-        .json({ error: "Project not found or unauthorized" });
+      return res.status(404).json({ error: "Project not found" });
     }
 
-    if (name && (typeof name !== "string" || name.trim().length < 3)) {
-      return res
-        .status(400)
-        .json({ error: "Project name must be at least 3 characters long" });
+    if (project.ownerId !== req.user.id) {
+      const isTeamAdmin = await TeamMember.findOne({
+        where: { teamId: project.teamId, userId: req.user.id, role: "admin" },
+      });
+      if (!isTeamAdmin) {
+        return res
+          .status(403)
+          .json({ error: "You are not authorized to update this project" });
+      }
     }
 
     await project.update({ name, description });
@@ -104,25 +118,25 @@ const updateProject = async (req, res) => {
 const deleteProject = async (req, res) => {
   try {
     const { id } = req.params;
-
-    const project = await Project.findOne({
-      where: { id, userId: req.user.id },
-    });
+    const project = await Project.findByPk(id);
 
     if (!project) {
-      return res
-        .status(404)
-        .json({ error: "Project not found or unauthorized" });
+      return res.status(404).json({ error: "Project not found" });
     }
 
-    await Task.update({ projectId: null }, { where: { projectId: id } });
+    if (project.ownerId !== req.user.id) {
+      const isTeamAdmin = await TeamMember.findOne({
+        where: { teamId: project.teamId, userId: req.user.id, role: "admin" },
+      });
+      if (!isTeamAdmin) {
+        return res
+          .status(403)
+          .json({ error: "You are not authorized to delete this project" });
+      }
+    }
 
     await project.destroy();
-
-    res.json({
-      message:
-        "Project deleted successfully. Associated tasks are now unassigned.",
-    });
+    res.json({ message: "Project deleted successfully" });
   } catch (error) {
     console.error("Error deleting project:", error);
     res.status(500).json({ error: "Error deleting project" });
