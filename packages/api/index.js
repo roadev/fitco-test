@@ -25,7 +25,7 @@ app.use(session({
 
 async function initializeDatabase() {
     try {
-      await sequelizeInstance.sync({ alter: true });
+      await sequelizeInstance.sync({ alter: false });
       console.log('Database synchronized successfully.');
     } catch (error) {
       console.error('Database synchronization failed:', error.message);
@@ -44,4 +44,6 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.APP_PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+module.exports = { app, server }; 
