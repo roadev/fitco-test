@@ -216,58 +216,6 @@ const deleteTask = async (req, res) => {
   }
 };
 
-const assignTask = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { assignedTo } = req.body;
-
-    if (!assignedTo || isNaN(assignedTo) || parseInt(assignedTo) <= 0) {
-      return res.status(400).json({ error: "Invalid user ID" });
-    }
-
-    const task = await Task.findByPk(id, { include: [{ model: Project }] });
-
-    if (!task) {
-      return res.status(404).json({ error: "Task not found" });
-    }
-
-    const project = task.Project;
-
-    if (project.ownerId !== req.user.id) {
-      const membership = await TeamMember.findOne({
-        where: { teamId: project.teamId, userId: req.user.id },
-      });
-
-      if (!membership || membership.role !== "admin") {
-        return res.status(403).json({
-          error: "Only project owners or team admins can assign tasks",
-        });
-      }
-    }
-
-    const user = await User.findByPk(assignedTo);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const isMember = await TeamMember.findOne({
-      where: { teamId: project.teamId, userId: assignedTo },
-    });
-    if (project.teamId && !isMember) {
-      return res
-        .status(403)
-        .json({ error: "User is not a member of this team" });
-    }
-
-    await task.update({ assignedTo });
-
-    res.json({ message: "Task assigned successfully", task });
-  } catch (error) {
-    console.error("Error assigning task:", error);
-    res.status(500).json({ error: "Error assigning task" });
-  }
-};
-
 const assignUserToTask = async (req, res) => {
   try {
     const { id } = req.params;
@@ -293,12 +241,9 @@ const assignUserToTask = async (req, res) => {
       });
 
       if (!membership || membership.role !== "admin") {
-        return res
-          .status(403)
-          .json({
-            error:
-              "Only project owners or team admins can assign users to tasks",
-          });
+        return res.status(403).json({
+          error: "Only project owners or team admins can assign users to tasks",
+        });
       }
     }
 
@@ -328,6 +273,50 @@ const assignUserToTask = async (req, res) => {
   }
 };
 
+const unassignUserFromTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    if (!userId || isNaN(userId) || parseInt(userId) <= 0) {
+      return res.status(400).json({ error: "Provide a valid user ID to unassign" });
+    }
+
+    const task = await Task.findByPk(id, { include: [{ model: Project }] });
+
+    if (!task) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    const project = task.Project;
+
+    if (project.ownerId !== req.user.id) {
+      const membership = await TeamMember.findOne({ where: { teamId: project.teamId, userId: req.user.id } });
+
+      if (!membership || membership.role !== 'admin') {
+        return res.status(403).json({ error: "Only project owners or team admins can unassign users from tasks" });
+      }
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const assignment = await TaskAssignment.findOne({ where: { taskId: id, userId } });
+    if (!assignment) {
+      return res.status(400).json({ error: "User is not assigned to this task" });
+    }
+
+    await assignment.destroy();
+
+    res.json({ message: "User unassigned from task successfully", unassignedUser: userId });
+  } catch (error) {
+    console.error("Error unassigning user from task:", error);
+    res.status(500).json({ error: "Error unassigning user from task" });
+  }
+};
+
 module.exports = {
   createTask,
   getTasks,
@@ -335,6 +324,6 @@ module.exports = {
   updateTask,
   deleteTask,
   getTasksByProject,
-  assignTask,
   assignUserToTask,
+  unassignUserFromTask,
 };

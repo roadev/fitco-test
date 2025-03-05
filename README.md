@@ -1,4 +1,4 @@
-# Task Manager API
+# Trello-like API
 
 ## Overview
 
@@ -35,7 +35,7 @@ This project is a **Task Manager API** built using **Node.js** with an **MVC arc
 | POST   | `/api/auth/register` | Register a new user |
 | POST   | `/api/auth/login`    | Login and get JWT |
 
-### Tasks
+### Tasks (needs update docs)
 
 | Method | Endpoint        | Description                      |
 |--------|----------------|----------------------------------|
