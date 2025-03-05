@@ -1,19 +1,29 @@
-const Project = require('../models/Project');
+const Project = require("../models/Project");
+const Task = require('../models/Task');
+
 
 const createProject = async (req, res) => {
   try {
     const { name, description } = req.body;
 
-    if (!name || typeof name !== 'string' || name.trim().length < 3) {
-      return res.status(400).json({ error: 'Project name must be at least 3 characters long' });
+    if (!name || typeof name !== "string" || name.trim().length < 3) {
+      return res
+        .status(400)
+        .json({ error: "Project name must be at least 3 characters long" });
     }
 
-    const newProject = await Project.create({ name, description, userId: req.user.id });
+    const newProject = await Project.create({
+      name,
+      description,
+      userId: req.user.id,
+    });
 
-    res.status(201).json({ message: 'Project created successfully', project: newProject });
+    res
+      .status(201)
+      .json({ message: "Project created successfully", project: newProject });
   } catch (error) {
     console.error("Error creating project:", error);
-    res.status(500).json({ error: 'Error creating project' });
+    res.status(500).json({ error: "Error creating project" });
   }
 };
 
@@ -40,10 +50,14 @@ const getProjectById = async (req, res) => {
       return res.status(400).json({ error: "Invalid project ID" });
     }
 
-    const project = await Project.findOne({ where: { id, userId: req.user.id } });
+    const project = await Project.findOne({
+      where: { id, userId: req.user.id },
+    });
 
     if (!project) {
-      return res.status(404).json({ error: "Project not found or unauthorized" });
+      return res
+        .status(404)
+        .json({ error: "Project not found or unauthorized" });
     }
 
     res.json(project);
@@ -62,14 +76,20 @@ const updateProject = async (req, res) => {
       return res.status(400).json({ error: "Invalid project ID" });
     }
 
-    const project = await Project.findOne({ where: { id, userId: req.user.id } });
+    const project = await Project.findOne({
+      where: { id, userId: req.user.id },
+    });
 
     if (!project) {
-      return res.status(404).json({ error: "Project not found or unauthorized" });
+      return res
+        .status(404)
+        .json({ error: "Project not found or unauthorized" });
     }
 
-    if (name && (typeof name !== 'string' || name.trim().length < 3)) {
-      return res.status(400).json({ error: "Project name must be at least 3 characters long" });
+    if (name && (typeof name !== "string" || name.trim().length < 3)) {
+      return res
+        .status(400)
+        .json({ error: "Project name must be at least 3 characters long" });
     }
 
     await project.update({ name, description });
@@ -85,18 +105,34 @@ const deleteProject = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const project = await Project.findOne({ where: { id, userId: req.user.id } });
+    const project = await Project.findOne({
+      where: { id, userId: req.user.id },
+    });
 
     if (!project) {
-      return res.status(404).json({ error: "Project not found or unauthorized" });
+      return res
+        .status(404)
+        .json({ error: "Project not found or unauthorized" });
     }
 
+    await Task.update({ projectId: null }, { where: { projectId: id } });
+
     await project.destroy();
-    res.json({ message: "Project deleted successfully" });
+
+    res.json({
+      message:
+        "Project deleted successfully. Associated tasks are now unassigned.",
+    });
   } catch (error) {
     console.error("Error deleting project:", error);
     res.status(500).json({ error: "Error deleting project" });
   }
 };
 
-module.exports = { createProject, getProjects, getProjectById, updateProject, deleteProject };
+module.exports = {
+  createProject,
+  getProjects,
+  getProjectById,
+  updateProject,
+  deleteProject,
+};
