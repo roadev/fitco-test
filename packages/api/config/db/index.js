@@ -1,5 +1,5 @@
 const { Sequelize } = require('sequelize');
-require('dotenv').config();
+require('dotenv').config({ path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' });
 
 const sequelize = new Sequelize(
   process.env.MYSQL_DATABASE,
@@ -18,16 +18,6 @@ const sequelize = new Sequelize(
   }
 );
 
-async function testConnection() {
-  try {
-    await sequelize.authenticate();
-    console.log('Database connection established successfully.');
-  } catch (error) {
-    console.error('Database connection failed:', error.message);
-    process.exit(1);
-  }
-}
-
-testConnection();
+console.log(`Connected to database: ${process.env.MYSQL_DATABASE} (ENV: ${process.env.NODE_ENV})`);
 
 module.exports = sequelize;

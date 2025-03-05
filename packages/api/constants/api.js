@@ -8,6 +8,7 @@ const api = {
   headers: {
     "Content-Type": "application/json",
   },
+  PORT: process.env.APP_PORT,
 };
 
 module.exports = { auth, api };
