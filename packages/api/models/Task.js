@@ -22,6 +22,11 @@ const Task = sequelize.define('Task', {
     defaultValue: 'pending',
     allowNull: false,
   },
+  priority: {
+    type: DataTypes.ENUM('low', 'medium', 'high', 'urgent'),
+    defaultValue: 'medium',
+    allowNull: false,
+  },
   userId: {
     type: DataTypes.INTEGER,
     allowNull: false,
