@@ -96,14 +96,6 @@ This project uses the Node.js v22 runtime, LTS
 
 nvm is used to manage the node project's version
 
-### Database setup
-
-`docker compose up -d`
-
-### Set ENV vars
-
-`cp .env.example .env`
-
 ### ENV vars for dev/prod, modify
 
 `.env`
@@ -112,9 +104,27 @@ nvm is used to manage the node project's version
 
 `.env.test`
 
+### Set ENV vars
+
+`cp .env.example .env`
+
+### Database setup
+
+`docker compose up -d`
+
+## Running the actual API
+
+`npm run dev`
+
 ### API will be available at
 
 `http://localhost:5000`
+
+### Unit and integration tests
+
+Only unit tests are working until this commit
+
+`npm run test`
 
 ## Future work and current stack
 
