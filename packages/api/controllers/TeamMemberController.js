@@ -20,12 +20,19 @@ const addMember = async (req, res) => {
         .json({ error: "Invalid role. Allowed values: admin, member, viewer" });
     }
 
-    const team = await Team.findOne({
-      where: { id: teamId, ownerId: req.user.id },
-    });
-
+    const team = await Team.findByPk(teamId);
     if (!team) {
-      return res.status(404).json({ error: "Team not found or unauthorized" });
+      return res.status(404).json({ error: "Team not found" });
+    }
+
+    // Check if the user making the request is an admin
+    const requesterMembership = await TeamMember.findOne({
+      where: { teamId, userId: req.user.id },
+    });
+    if (!requesterMembership || requesterMembership.role !== "admin") {
+      return res
+        .status(403)
+        .json({ error: "Only admins can add team members" });
     }
 
     const user = await User.findByPk(userId);
@@ -69,12 +76,18 @@ const removeMember = async (req, res) => {
       return res.status(400).json({ error: "Invalid user ID" });
     }
 
-    const team = await Team.findOne({
-      where: { id: teamId, ownerId: req.user.id },
-    });
-
+    const team = await Team.findByPk(teamId);
     if (!team) {
-      return res.status(404).json({ error: "Team not found or unauthorized" });
+      return res.status(404).json({ error: "Team not found" });
+    }
+
+    const requesterMembership = await TeamMember.findOne({
+      where: { teamId, userId: req.user.id },
+    });
+    if (!requesterMembership || requesterMembership.role !== "admin") {
+      return res
+        .status(403)
+        .json({ error: "Only admins can remove team members" });
     }
 
     const member = await TeamMember.findOne({ where: { teamId, userId } });
